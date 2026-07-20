@@ -1,0 +1,65 @@
+Here are two practical, production-ready examples of multi-stage builds across two completely different tech stacks.  
+Each example demonstrates how to compile the application in a heavy, tool-filled builder stage, and then copy only the essential compiled output into a tiny runtime stage.  
+Example 1: Node.js / React (Compiled into Nginx Static Server)
+Stage 1 Base Image (node:20-alpine): Includes Node.js, npm, and build tools.  
+Stage 2 Base Image (nginx:alpine): Extremely lightweight web server (~20–30 MB) with no Node.js runtime.
+
+Dockerfile
+# ==========================================
+# STAGE 1: Build Stage (Heavy Node Environment)
+# ==========================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files and install ALL dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source code and build the static production bundle
+COPY . .
+RUN npm run build
+
+# ==========================================
+# STAGE 2: Runtime Stage (Lightweight Nginx Server)
+# ==========================================
+FROM nginx:alpine AS runner
+
+# Copy ONLY the static dist/build files from Stage 1 into Nginx's web root
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expose standard web traffic port
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+
+Result: Drops image size from ~1 GB (Node + node_modules + source code) down to ~30 MB (pure compiled HTML/JS served by Nginx)!
+Example 2: Go / Golang (Compiled into a Zero-Byte scratch Image)Stage 1 Base Image (golang:1.22): Heavy Go SDK, compilers, and system utilities.Stage 2 Base Image (scratch): Docker’s absolute minimalist base image (literally 0 MB in size).Dockerfile# ==========================================
+# STAGE 1: Build Stage (Full Go SDK & Compiler)
+# ==========================================
+FROM golang:1.22 AS builder
+
+WORKDIR /src
+
+# Download dependencies separately to leverage layer caching
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code and compile a standalone, statically-linked binary
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server .
+
+
+# ==========================================
+# STAGE 2: Runtime Stage (Absolute Zero OS Overhead)
+# ==========================================
+FROM scratch AS runner
+
+# Copy ONLY the compiled binary file from Stage 1
+COPY --from=builder /app/server /server
+
+# Set entrypoint to run the binary directly
+ENTRYPOINT ["/server"]
+
+Result: Leaves the Go compiler, SDK, and source code completely behind in Stage 1.
+The resulting production image is literally just the binary file itself (~10–15 MB total).
