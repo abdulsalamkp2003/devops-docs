@@ -1,0 +1,73 @@
+Let’s do this practical exercise step-by-step. We will create a tiny Node.js application, 
+build it using an optimized multi-stage Dockerfile, tag it locally with both a specific version tag (v1.0.0) and the latest tag, 
+and push it up to Docker Hub.Before we start, replace YOUR_DOCKERHUB_USERNAME in the commands below with your actual Docker Hub username.
+
+🛠️ Step-by-step Practical Guide1.
+
+Create your project files:
+Create a new directory on your computer, open a terminal inside it, 
+and create these two simple files:app.js (Our tiny app)
+
+JavaScriptconst http = require('http');
+const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Hello! This app is successfully running inside a tiny multi-stage container!\n');
+});
+server.listen(3000, () => console.log('Server running on port 3000'));
+
+package.json (App metadata)JSON{
+  "name": "tiny-node-app",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  }
+}
+
+2.Write the Multi-Stage Dockerfile:2 mins.Create a file named Dockerfile (no file extension) in the same directory. 
+We will use the exact concept we discussed: compiling/preparing dependencies in a heavy node environment, 
+and transferring only the running code to a lightweight Alpine image.
+
+Dockerfile
+# Stage 1: The Builder (heavy environment)
+FROM node:20 AS builder
+WORKDIR /build
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+# Stage 2: The Runtime (ultra-lightweight Alpine environment)
+FROM node:20-alpine AS runner
+WORKDIR /app
+# Copy only the prepared application files from the builder stage
+COPY --from=builder /build .
+EXPOSE 3000
+CMD ["npm", "start"]
+
+3.Log into Docker Hub via CLI:1 min.Open your terminal and authenticate your local computer with Docker Hub. 
+Enter your Docker Hub username and password when prompted:Bashdocker login
+
+4.Build and Tag the Images:2 mins.We need to build the Dockerfile. 
+In standard industry practice, we tag the image twice: 
+once with the exact version release number and once with latest so users can always pull the newest default build easily.
+Run these two commands in your terminal (make sure to include the trailing dot .):
+
+Bash# 
+1. Build and tag with a specific version number
+docker build -t YOUR_DOCKERHUB_USERNAME/tiny-node-app:v1.0.0 .
+
+# 2. Tag that exact same build image as 'latest'
+docker tag YOUR_DOCKERHUB_USERNAME/tiny-node-app:v1.0.0 YOUR_DOCKERHUB_USERNAME/tiny-node-app:latest
+
+5.Push both tags to Docker Hub:2 mins.Now push both matching image tags up to your cloud repository on Docker Hub:
+
+Bash
+# Push the versioned copy
+docker push YOUR_DOCKERHUB_USERNAME/tiny-node-app:v1.0.0
+
+# Push the latest copy
+docker push YOUR_DOCKERHUB_USERNAME/tiny-node-app:latest
+
+🔎 Verifying Your Work
+Once the push steps finish, log into your browser dashboard at hub.docker.com. 
+Navigate to your repository page, click on the Tags tab, and you will see your freshly uploaded images populated clearly.
