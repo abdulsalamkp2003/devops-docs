@@ -34,5 +34,3 @@ To prevent unexpected or destructive changes in production infrastructure:
 Push Protection: GitHub blocks commits containing exposed secrets (AWS keys, Docker tokens) before they land in the repository.
 
 Branch Protection Rules: Requires Pull Request approvals, status checks (passing CI builds), and blocks force-pushes (git push --force) on main.
-
-File-> auto save
