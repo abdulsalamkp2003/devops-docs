@@ -1,0 +1,38 @@
+Scenario Explanations: Core Concepts
+
+1. Semantic Versioning (MAJOR.MINOR.PATCH)
+
+To bring order to releases, software engineering relies on Semantic Versioning (SemVer) formatted as vX.Y.Z (e.g., v1.2.3):
+
+MAJOR (1.0.0 → 2.0.0): Incompatible API changes or breaking updates.
+
+MINOR (1.2.0 → 1.3.0): Adding new features in a backward-compatible 
+manner.
+
+PATCH (1.2.3 → 1.2.4): Backward-compatible bug fixes or minor hotfixes.
+
+2. Branching Strategies & Team Complexity
+
+Your branching strategy dictates how code flows from developer machines to production. The choice depends on team size and deployment velocity:
+
+Trunk-Based Development (Best for fast/large teams): Developers commit short-lived feature branches directly into main. Heavy automated testing ensures stability.
+
+GitHub Flow (Simple/Small teams): Clean and straightforward. Create a feature branch $\rightarrow$ open a Pull Request (PR) $\rightarrow$ merge to main $\rightarrow$ deploy.
+
+GitFlow (Complex/Enterprise releases): Uses multiple long-lived branches (main, develop, release/*, hotfix/*). Best for strict release cycles, though heavier to manage.
+
+3. Git Tags vs. Git Branches
+
+Branch (main, feature/app): A moving pointer to the latest commit. Branches constantly change as developers add code.
+
+Tag (v1.0.0): An immutable snapshot tied to one specific commit in history. It locks down an exact state of the infrastructure or code so nobody can accidentally overwrite or modify it.
+
+4. Push Protection & Security Controls
+
+To prevent unexpected or destructive changes in production infrastructure:
+
+Push Protection: GitHub blocks commits containing exposed secrets (AWS keys, Docker tokens) before they land in the repository.
+
+Branch Protection Rules: Requires Pull Request approvals, status checks (passing CI builds), and blocks force-pushes (git push --force) on main.
+
+File-> auto save
