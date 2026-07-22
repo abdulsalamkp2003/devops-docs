@@ -619,3 +619,4 @@ Bash
 docker push YOUR_DOCKERHUB_USERNAME/tiny-node-app:v1.0.0
 # Push the latest copy
 docker push YOUR_DOCKERHUB_USERNAME/tiny-node-app:latest
+
