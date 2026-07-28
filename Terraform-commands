@@ -1,0 +1,44 @@
+terraform init
+terraform plan
+terraform apply
+terraform refresh
+terraform destroy
+
+# Option B: Re-apply without changes (updates state and prints new root outputs)
+terraform apply -refresh-only
+
+terraform output	
+Displays all defined root output values without running a full plan.
+
+terraform state list	
+Lists all resources currently tracked inside your terraform.tfstate file.
+
+terraform validate	
+Checks your syntax and attribute names in .tf files for errors without calling AWS APIs.
+
+terraform fmt	
+Automatically formats your .tf code to follow standard HashiCorp spacing and style rules.
+
+terraform state list -state=terraform.tfstate.backup
+
+terraform init -upgrade
+
+terraform providers
+
+Visualize the Dependency Graph (Optional)
+You can inspect the full graph that Terraform generates internally by running:
+terraform graph
+
+(This prints a DOT graph showing all directed edges between your resources, including explicit depends_on linkages!)
+
+🛠️ Handy Command: refresh-only
+If you ever want to update your local .tfstate file to reflect what's currently in AWS without changing any actual infrastructure, run:
+
+terraform plan -refresh-only
+# then if you agree with state update:
+terraform apply -refresh-only
+
+If you wish to attempt automatic migration of the state, use 
+"terraform init -migrate-state".
+│ If you wish to store the current configuration with no changes to the state, use 
+"terraform init -reconfigure".

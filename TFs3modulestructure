@@ -1,0 +1,99 @@
+1. Create the Directory Structure
+Inside your workspace directory, create a subfolder called modules/aws-s3-bucket:
+
+Plaintext
+devops-docs/
+├── main.tf                     <-- Root Configuration
+└── modules/
+    └── aws-s3-bucket/          <-- Local Child Module Folder
+        ├── main.tf
+        ├── variables.tf
+        └── outputs.tf
+
+2. Write the Child Module Code
+modules/aws-s3-bucket/variables.tf
+Define input variables that your root module will pass into this custom module:
+
+Terraform
+variable "bucket_name" {
+  type        = string
+  description = "The name of the S3 bucket"
+}
+
+variable "environment" {
+  type        = string
+  description = "Deployment environment (dev, stage, prod)"
+  default     = "dev"
+}
+
+modules/aws-s3-bucket/main.tf
+Define the AWS resources inside the module:
+
+Terraform
+resource "aws_s3_bucket" "this" {
+  bucket = var.bucket_name
+
+  tags = {
+    Name        = var.bucket_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+modules/aws-s3-bucket/outputs.tf
+Expose values back to the root module:
+
+Terraform
+output "bucket_arn" {
+  value       = aws_s3_bucket.this.arn
+  description = "ARN of the created S3 bucket"
+}
+
+ 3. Call the Local Module from Root main.tfNow, edit the main.tf in your root folder to point directly to ./modules/aws-s3-bucket:Terraformterraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region                      = "us-east-1"
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+}
+
+# Call your local custom module using a relative path
+module "my_practice_bucket" {
+  source      = "./modules/aws-s3-bucket"
+  bucket_name = "my-practice-app-bucket-2026"
+  environment = "practice"
+}
+🧪 4. Practice Steps & Inspecting Diff with terraform plan1.Initialize the local module:10 seconds.Run terraform init to let Terraform register the child module path:PowerShellterraform init
+2.Run the initial terraform plan:15 seconds.Inspect the output:PowerShellterraform plan
+Notice how resources inside the module are prefixed:+ module.my_practice_bucket.aws_s3_bucket.this3.Modify the child module code:20 seconds.Open modules/aws-s3-bucket/main.tf and add an enable versioning block or a new tag:Terraformresource "aws_s3_bucket" "this" {
+  bucket = var.bucket_name
+
+  tags = {
+    Name        = var.bucket_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+    Owner       = "DevOps-Team" # <-- New change added
+  }
+}
+
+4.Re-run plan to see the exact diff 
+
+Run terraform plan again to see Terraform detect the change inside your local module:
+
+PowerShell
+
+terraform plan
+
+Key Difference: Registry Modules vs. Local Modules
+Registry Modules (source = "terraform-aws-modules/vpc/aws"): 
+Code is fetched from the web and pinned with version = "x.y.z".
+
+Local Modules (source = "./modules/aws-s3-bucket"): 
+Code lives on your machine. You don't use version = ... 
+because changes made inside the local files update immediately.
